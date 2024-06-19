@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
+import {catchError, Observable} from "rxjs";
 import {Employee} from "./employee";
 import {environment} from "../environments/environment.development";
 
@@ -12,7 +12,14 @@ export class EmployeeService {
   }
 
   public getEmployees(): Observable<Employee[]> {
-    return this.http.get<Employee[]>(`${this.apiServerUrl}/employee/all`);
+    return this.http.get<Employee[]>(`${this.apiServerUrl}/employee/all`)
+      .pipe(
+        catchError(error => {
+            console.error('Error fetching data', error);
+            throw error;
+          }
+        )
+      );
   }
 
   public addEmployee(employee: Employee): Observable<Employee> {

@@ -1,21 +1,24 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
-import {Employee} from "./employee";
-import {HttpErrorResponse} from "@angular/common/http";
+import {Employee} from './employee';
 import {EmployeeService} from "./employee.service";
+import {HttpErrorResponse} from "@angular/common/http";
+import {FormsModule, NgForm} from '@angular/forms';
 import {NgForOf} from "@angular/common";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NgForOf],
+  imports: [RouterOutlet, NgForOf, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   title = 'employee-app';
 
-  public employees: Employee[] | undefined;
+  public employees: Employee[] = [];
+  public editEmployee: Employee | undefined;
+  public deleteEmployee: Employee | undefined;
 
   constructor(private employeeService: EmployeeService) {
   }
@@ -33,6 +36,81 @@ export class AppComponent implements OnInit {
         alert(error.message)
       }
     )
+  }
+
+  onAddEmployee(addForm: NgForm) {
+    let elementById = document.getElementById('add-employee-form');
+    elementById?.click()
+    this.employeeService.addEmployee(addForm.value).subscribe(
+      (response: Employee) => {
+        console.log(response);
+        this.getEmployees()
+        addForm.reset()
+      },
+      (error: HttpErrorResponse) => {
+        alert(error.message)
+        addForm.reset()
+      }
+    )
+  }
+
+  onUpdateEmployee(employee: Employee) {
+    this.employeeService.updateEmployee(employee).subscribe(
+      (response: Employee) => {
+        console.log(response);
+        this.getEmployees()
+      },
+      (error: HttpErrorResponse) => {
+        alert(error.message)
+      }
+    )
+  }
+
+  onDeleteEmployee(employeeId: number | undefined) {
+    if (employeeId === undefined) {
+      alert(`Employee ${employeeId} not found`);
+    } else {
+      this.employeeService.deleteEmployee(employeeId).subscribe(
+        (response: void) => {
+          console.log(response);
+          this.getEmployees()
+        },
+        (error: HttpErrorResponse) => {
+          alert(error.message)
+        }
+      )
+    }
+  }
+
+  public onOpenModal(employee: Employee | null, mode: string): void {
+    const container = document.getElementById('main-container')
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.style.display = 'none'
+    button.setAttribute('data-bs-toggle', 'modal');
+
+    switch (mode) {
+      case 'add':
+        button.setAttribute('data-bs-target', '#addEmployeeModal');
+        break;
+      case 'edit':
+        if (employee != null) {
+          this.editEmployee = employee;
+        }
+        button.setAttribute('data-bs-target', '#updateEmployeeModal');
+        break;
+      case 'delete':
+        // TODO minek ez a null csekk? Nem lehet máshogy?
+        if (employee != null) {
+          this.deleteEmployee = employee;
+        }
+        button.setAttribute('data-bs-target', '#deleteEmployeeModal');
+        break;
+    }
+
+    // @ts-ignore
+    container.appendChild(button);
+    button.click()
   }
 
 }
