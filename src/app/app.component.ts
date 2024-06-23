@@ -4,12 +4,12 @@ import {Employee} from './employee';
 import {EmployeeService} from "./employee.service";
 import {HttpErrorResponse} from "@angular/common/http";
 import {FormsModule, NgForm} from '@angular/forms';
-import {NgForOf} from "@angular/common";
+import {NgForOf, NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NgForOf, FormsModule],
+  imports: [RouterOutlet, NgForOf, FormsModule, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -82,6 +82,23 @@ export class AppComponent implements OnInit {
     }
   }
 
+  public searchEmployees(key: string): void {
+    const results: Employee[] = [];
+    for (const employee of this.employees) {
+      if (employee.name.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
+        employee.email.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
+        employee.phone.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
+        employee.jobTitle.toLowerCase().indexOf(key.toLowerCase()) !== -1) {
+        results.push(employee);
+      }
+    }
+    this.employees = results;
+
+    if (results.length === 0 || !key) {
+      this.getEmployees()
+    }
+  }
+
   public onOpenModal(employee: Employee | null, mode: string): void {
     const container = document.getElementById('main-container')
     const button = document.createElement('button');
@@ -100,7 +117,6 @@ export class AppComponent implements OnInit {
         button.setAttribute('data-bs-target', '#updateEmployeeModal');
         break;
       case 'delete':
-        // TODO minek ez a null csekk? Nem lehet máshogy?
         if (employee != null) {
           this.deleteEmployee = employee;
         }
